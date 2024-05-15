@@ -1,0 +1,77 @@
+﻿@model List<PromoCode>
+@{
+    ViewData["Title"] = "PromoCode";
+    Layout = "_AdminLayout";
+}
+<div id="modal-placeholder"></div>
+<div class="Section p-20 bg-white rad-10 m-20">
+    <h2 class="mt-0 mb-20">PromoCodes</h2>
+    <div class="responsive-table">
+        <p>
+            <a href="#" onclick="add()">Create New</a>
+        </p><br />
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        Code
+                    </th>
+                    <th>
+                        Percentage
+                    </th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @item.Code
+                        </td>
+                        <td>
+                            @item.Percentage %
+                        </td>
+                        <td>
+                            <a href="#" onclick="deletePromoCode('@item.Id')"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <nav aria-label="Page navigation" class="my-5">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= Math.Ceiling((double)(int)ViewData["TotalItems"] / (int)ViewData["content"]); i++)
+                {
+                    <li class="page-item @(i == (int)ViewData["Page"] ? "active" : "")">
+                        <a class="page-link btn btn-secondary mx-1" asp-action="Index" asp-controller="Category" asp-route-page="@i">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function add() {
+        event.preventDefault();
+        $.ajax({
+            url: `/PromoCode/Add`,
+            success: function (result) {
+                $("#modal-placeholder").html(result);
+                $('#AddModal').modal('show');
+            }
+        });
+    }
+    function deletePromoCode(id) {
+        event.preventDefault();
+        $.ajax({
+            url: `/PromoCode/Delete/${id}`,
+            success: function (result) {
+                $("#modal-placeholder").html(result);
+                $('#DeleteModal').modal('show');
+            }
+        });
+    }
+</script>

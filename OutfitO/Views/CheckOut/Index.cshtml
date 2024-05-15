@@ -1,0 +1,188 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@model OutfitO.ViewModels.PaymentViewModel
+@{
+    ViewData["Title"] = "Index";
+    Layout = "_UserLayout";
+}
+<style>
+    .form-group span{
+       color:red;
+    }
+    .details{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+</style>
+<div class="section">
+    <!-- container -->
+    <div class="container">
+        <!-- row -->
+        <div class="row">
+            <div class="col-md-7">
+                <!-- Billing Details -->
+                <div class="billing-details">
+                    <div class="section-title">
+                        <h3 class="title">Billing Info</h3>
+                    </div>
+                    <form id="payment-form" asp-action="ProcessPayment" asp-controller="CheckOut" method="post">
+                        <input asp-for="Amount" value="@ViewBag.Price" hidden/>
+                        <input asp-for="UserId" value="@ViewBag.User" hidden/>
+                        <div class="form-group">
+                            <label asp-for="Name"></label>
+                            <input asp-for="Name" class="form-control" />
+                            <span asp-validation-for="Name"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Email"></label>
+                            <input asp-for="Email" class="form-control" />
+                            <span asp-validation-for="Email"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Address"></label>
+                            <input asp-for="Address" class="form-control" />
+                            <span asp-validation-for="Address"></span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label asp-for="City"></label>
+                                <input asp-for="City" class="form-control" />
+                                <span asp-validation-for="City"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="State"></label>
+                                <input asp-for="State" class="form-control" />
+                                <span asp-validation-for="State"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Zip"></label>
+                                <input asp-for="Zip" class="form-control" />
+                                <span asp-validation-for="Zip"></span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Country"></label>
+                            <input asp-for="Country" class="form-control" />
+                            <span asp-validation-for="Country"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="Phone"></label>
+                            <input asp-for="Phone" class="form-control" />
+                            <span asp-validation-for="Phone"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="card-element">Credit or debit card</label>
+                            <div id="card-element" class="form-control">
+                                <!-- A Stripe Element will be inserted here. -->
+                            </div>
+                            <div id="card-errors" role="alert"></div>
+                        </div>
+                        <br />
+                        <button id="submit-button" class="btn btn-primary">Submit Payment</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Order Details -->
+            <div class="col-md-5 details">
+                <div class="section-title text-center">
+                    <h3 class="title">Your Order</h3>
+                </div>
+                <div class="order-summary">
+                    <div class="order-col">
+                        <div><strong>PRODUCT</strong></div>
+                        <div><strong>TOTAL</strong></div>
+                    </div>
+                    <div class="order-products">
+                        @foreach (CartItem item in ViewBag.Cart)
+                        {
+                            <div class="order-col">
+                                <div>@item.Quantity x - @item.Product.Title</div>
+                                <div>$@item.Product.Price</div>
+                            </div>
+                        }
+                        @{
+                            var session = HttpContextAccessor.HttpContext.Session;
+                            string promoPercent = session.GetString("promoPercent");
+                        }
+                        @if (promoPercent != "")
+                        {
+                            <div class="order-col">
+                                <div>Promo Code Percentage</div>
+                                <div>-@promoPercent%</div>
+                            </div>
+                        }
+                    </div>
+               
+                    <div class="order-col">
+                        <div><strong>TOTAL</strong></div>
+                        <div><strong class="order-total">$@ViewBag.Price</strong></div>
+                    </div>
+                </div>
+            </div>
+            <!-- /Order Details -->
+        </div>
+        <!-- /row -->
+    </div>
+    <!-- /container -->
+</div>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+@section Scripts {
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // JavaScript code for Stripe integration
+        // Create a Stripe client.
+        var stripe = Stripe('pk_test_51Oxs1dA5xWK61WYUCohvbYnbaVDx7TzCc55SzJkDzf3NNioKQJfaPx2urIS45ofUYwGY7HtqyFik68Z4tIQk8nUp00mFuErfZh');
+
+        // Create an instance of Elements.
+        var elements = stripe.elements();
+
+        // Create an instance of the card Element.
+        var card = elements.create('card');
+
+        // Add an instance of the card Element into the `card-element` div.
+        card.mount('#card-element');
+
+        // Handle real-time validation errors from the card Element.
+        card.addEventListener('change', function (event) {
+            var displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+        // Handle form submission.
+        var form = document.getElementById('payment-form');
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Disable the submit button to prevent multiple submissions.
+            document.getElementById('submit-button').disabled = true;
+
+            stripe.createToken(card).then(function (result) {
+                if (result.error) {
+                    // Inform the user if there was an error.
+                    var errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+
+                    // Enable the submit button.
+                    document.getElementById('submit-button').disabled = false;
+                } else {
+                    // Insert the token ID into the form so it gets submitted to the server.
+                    var tokenInput = document.createElement('input');
+                    tokenInput.setAttribute('type', 'hidden');
+                    tokenInput.setAttribute('name', 'stripeToken');
+                    tokenInput.setAttribute('value', result.token.id);
+                    form.appendChild(tokenInput);
+
+                    // Submit the form.
+                    form.submit();
+                }
+            });
+        });
+    </script>
+}

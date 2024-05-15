@@ -1,0 +1,197 @@
+﻿@model List<CartItem>
+@{
+    decimal Tmony;
+    Layout  = "_UserLayout";
+}
+<head>
+    <link rel="stylesheet" href="./css/cart.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10">
+
+</head>
+<partial name="_AlertPartial" />
+<section class="container-fluid">
+    <div class="vf-grid-wrap vf-grid-wrap-max">
+        <div class="vf-grid-10 cart-container">
+            <div class="cart-page">
+                <div class="cart">
+                    <h3>Cart Items</h3>
+                    @foreach (var item in Model)
+                    {
+                        <div class="cart-card">
+                            <div class="cart-card-container" id="card" style="display: flex;flex-direction: row;gap: 20px;">
+                                <div class="cartCard-image">
+                                    @{
+                                        string imagePath = $"~/Images/{item.Product.Img}";
+                                    }
+                                    <img src="@Url.Content(imagePath)" alt="" onclick="detail('@item.ProductID')">
+                                </div>
+                                <div class="cartCard-details">
+                                    <p class="cartProduct-name">@item.Product.Title</p>
+                                    @{
+                                         Tmony = item.Product.Price * item.Quantity;
+                                    }
+                                    <h5 class="cartProduct-price" id="total-@item.ProductID"> @Tmony $</h5>
+                                    <div class="counter-container">
+                                        <div class="counter">
+                                            <input type="button" id="sub-@item.ProductID" onclick="sub('@item.ProductID')" value="-" class="minus">
+                                            <input type="number" id="quantity-@item.ProductID" name="quantity" class="counter-disabled ng-untouched ng-pristine" disabled="" value="@item.Quantity">
+                                            <input type="button" id="sum-@item.ProductID" onclick="sum('@item.ProductID')" value="+" class="plus">
+                                        </div>
+									</div>
+									<div class="cart-actions">
+										<a onclick="deleteItem('@item.ProductID')" style="text-decoration:none">
+											<span class="glyphicon glyphicon-trash"></span> 
+                                            Remove
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="cart cart-summary">
+                    <h3>Order Summary</h3>
+                    <div class="summary-section">
+                            <div class="order-summary">
+                                <div class="code-input">
+                                    <h5>
+                                        <span class="glyphicon glyphicon-chevron-right"></span> Promocodes
+                                    </h5>
+                                    <div class="input">
+                                        <input type="text" placeholder="Enter promo code" dir="ltr" class="ng-untouched ng-pristine ng-valid" id="Promo">
+                                    </div>
+                                </div>
+                                <div class="order-cost">
+                                    <div class="subtotal">
+                                        <p> Subtotal ( <span id="length">@ViewBag.Count</span> Items ) </p>
+                                        <p class="total" id="subtotal">@ViewBag.Price</p>
+                                    </div>
+                                    <hr>
+                                    <div class="vat">
+                                        <p> Total </p>
+                                        <p class="total" id="total">@ViewBag.Price </p>
+                                    </div>
+                                </div>
+                                <div class="order-actions">
+                                    @if(ViewBag.Count>0){
+								        <button class="checkout-btn" id="check" onclick="checkout()">
+									        <i class="fa fa-credit-card" style="font-size:20px"></i> Go to checkout
+								        </button>
+                                    }
+                                    <button class="shopping-btn" asp-action="Index" asp-controller="Product"> Continue shopping </button>
+                                </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+</section>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+<script>
+    function deleteItem(id) {
+        Swal.fire({                        
+            title: "Are you sure?",
+            text: "Once deleted, you will not be able to recover this item!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Delete",
+            cancelButtonText: "Cancel",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire("Deleted!", "Product deleted from cart.", "success").then(() => {
+                    $.ajax({
+                        url: '/Cart/Delete/' + id,
+                        success: function (response) {
+                            location.reload();
+                        },
+                        error: function (xhr, status, error) {
+                            console.error(error);
+                        }
+                    });
+                });
+            } else {
+                Swal.fire("Cancelled", "Deletion cancelled.", "info");
+            }
+        });
+    }
+
+
+    function detail(id) {
+        window.location.href = '/Product/Details/' + id;
+    }
+
+
+    function recalculateTotal() {
+        var subtotal = 0;
+        $('.cartProduct-price').each(function () {
+            subtotal += parseFloat($(this).text());
+        });
+        $('#subtotal').text(subtotal.toFixed(2));
+        // var vat = subtotal * 0.15;
+        var total = subtotal /* + vat */;
+        $('#total').text(total.toFixed(2));
+    }
+
+    function sub(itemId) {
+        $.ajax({
+            url: '/Cart/DecreaseQuantity/' + itemId,
+            type: 'POST',
+            success: function (response) {
+                if (response.message === "Not Allowed .. Min Quantity = 1") {
+                    $('#msg').text(response.message);
+                    $('#MsgModal').addClass('show');
+                    $('#MsgModal').modal('show');
+                }else{
+                    console.log(response);
+                    $('#quantity-' + itemId).val(response.quantity);
+                    $('#total-' + itemId).text(response.quantity * response.itemPrice);
+                    recalculateTotal();
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            }
+        });
+    }
+
+    function sum(itemId) {
+        $.ajax({
+            url: '/Cart/IncrementQuantity/' + itemId,
+            type: 'POST',
+            success: function (response) {
+                if (response.message === undefined) {
+                    console.log(response);
+                    $('#quantity-' + itemId).val(response.quantity);
+                    $('#total-' + itemId).text(response.quantity * response.itemPrice);
+                    recalculateTotal();
+                } else {
+                    $('#msg').text(response.message)
+                    $('#MsgModal').addClass('show');
+                    $('#MsgModal').modal('show');
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            }
+        });
+    }
+
+    function checkout() {
+        let item = $("#Promo").val();
+        $.ajax({
+            url: '/PromoCode/CheckOut?promo='+item,
+            type: 'POST',
+            success: function (response) {
+                console.log("done");
+                // Redirect to the checkout page if needed
+                window.location.href = '/CheckOut/Index';
+            },
+            error: function (xhr, status, error) {
+                console.error(error);
+            }
+        });
+    }
+</script>
+

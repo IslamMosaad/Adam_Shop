@@ -1,0 +1,35 @@
+﻿@model OutfitO.ViewModels.UserImageVm
+<div class="modal fade" id="editImageModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Edit User</h5>
+                <a class="btn-close" asp-action="EditData" asp-route-id="@Model.Id"></a>
+            </div>
+            <div class="modal-body">
+                <form asp-action="EditImage" asp-controller="Profile" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <input asp-for="Id" class="form-control" hidden />
+                    <input asp-for="ProfileImage" class="form-control" hidden />
+                    <div class="form-group">
+                        <label asp-for="ProfileImg" class="control-label"></label>
+                        <input type="file" asp-for="ProfileImg" class="form-control" />
+                        <span asp-validation-for="ProfileImg" class="text-danger"></span>
+                    </div>
+                    <br />
+                    <div class="form-group">
+                        <input type="submit" value="Update" class="btn btn-primary" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-secondary" asp-action="EditData" asp-route-id="@Model.Id" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,368 @@
+﻿@model List<Comment>
+@{
+    Layout = "_ProductDetailsLayout";
+    Product data = ViewBag.ProductDetails;
+    bool didHebuyIt = ViewBag.productExists;
+}
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400..800&family=Kalam:wght@300;400;700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Pacifico&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10">
+
+</head>
+
+<style>
+    *{
+        box-sizing:border-box;
+    }
+    body {
+        font-family: "Montserrat", sans-serif;
+        color: #333;
+    }
+
+    .col-md-3 {
+       /*  flex: 0 0 auto; */
+        width: 25.33333333%;
+    }
+
+    .col-md-6 {
+        /* flex: 0 0 auto; */
+        width: 50%;
+    }
+
+    .clearboth {
+        clear: both;
+    }
+
+    ol, ul {
+        padding-left: 0px !important;
+    }
+
+    #Display_Review {
+        display: flex;
+        /* justify-content:space-between ; */
+    }
+
+    .detail {
+        margin-left: 10%;
+    }
+
+    .review-link {
+        color: #2B2D42;
+        font-weight: 500;
+        transition: all 0.3s ease-in-out;
+        text-decoration: none;
+    }
+
+    .review-link:hover {
+        color: red;
+    }
+
+    .fa-facebook-f, .fa-twitter, .fa-google-plus-g, .fa-envelope, .product-links {
+        color: #333;
+        text-decoration: none;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .fa-facebook-f:hover, .fa-twitter:hover, .fa-google-plus-g:hover, .fa-envelope:hover, .product-links:hover {
+        color: red;
+        text-decoration: none;
+    }
+
+    .add-to-cart-btn a {
+        text-decoration: none;
+    }
+
+        
+</style>
+
+<input type="hidden" id="productId" value="@ViewBag.ProductID" />
+
+<div id="modal-placeholder"></div>
+
+<!-- Product main img -->
+<div>
+    <div class="col-md-5  flexMain" style="margin:15px 0px;display: flex;justify-content: center;">
+        <img src="~/Images/@data.Img" height="300px" width="100%" /> 
+    </div>
+
+    <!-- /Product main img -->
+    <!-- Product details -->
+    <!-- Product details -->
+    <div class="col-md-5 detail flexMain ">
+        <div class="product-details">
+            <h2 class="product-name">@data.Title</h2>
+            <div>
+                <div class="product-rating">
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star"></i>
+                    <i class="fa fa-star-o"></i>
+                </div>
+                <a class="review-link" href="#product-tab">(@data.Comments.Count) Reviews | Add your review</a>
+            </div>
+            <div>
+                <h3 class="product-price fw-bold">$@data.Price <del class="product-old-price">$@(2 * @data.Price)</del></h3>
+                <span class="product-available">@data.Stock In Stock</span>
+            </div>
+            <p style="color:#333 ; line-height: 1.42857143;font-size: 14px;word-wrap: break-word;">@data.Description.</p>
+
+
+
+
+
+
+            <ul class="product-links">
+                <li>Category:</li>
+                <li><a href="#" style="text-decoration:none;color:#333">@data.Category.Title</a></li>
+
+            </ul>
+
+            <ul class="product-links">
+                <li>Share:</li>
+
+
+
+                <li><a href="#"> <i class="fa-brands fa-facebook-f"></i></a></li>
+                <li><a href="#"><i class="fa-brands fa-twitter"></i></a></li>
+                <li><a href="#"><i class="fa-brands fa-google-plus-g"></i></a></li>
+                <li><a href="#"><i class="fa-solid fa-envelope"></i></a></li>
+
+
+            </ul>
+            <div class="add-to-cart" style="margin-top: 30px;">
+                <a onclick="addToCart('@data.Id')">
+                    <button class="add-to-cart-btn"><i class="fa fa-shopping-cart"></i> add to cart</button>
+                </a>
+                <a href="/Product/Index">
+                    <button class="add-to-cart-btn" style="margin-top: 10px;"><i class="fa-regular fa-backward"></i> Back To List</button>
+                </a>
+
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /Product details -->
+
+<div >
+    <div id="product-tab">
+        <!-- product tab nav -->
+        <ul class="tab-nav">
+            <li><a data-toggle="tab" href="#tab3">All Reviews (@data.Comments.Count)</a></li>
+        </ul>
+        <div id="tab3" class="tab-pane fade in">
+            <div class="row reverse">
+
+                <!-- Rating -->
+                        <div class="col-md-3" >
+                            <div id="rating" >
+                                <div class="rating-avg">
+                                    <span>4.5</span>
+                                    <div class="rating-stars">
+                                        <i class="fa fa-star"></i>
+                                        <i class="fa fa-star"></i>
+                                        <i class="fa fa-star"></i>
+                                        <i class="fa fa-star"></i>
+                                        <i class="fa fa-star-o"></i>
+                                    </div>
+                                </div>
+                                <ul class="rating">
+                                    <li>
+                                        <div class="rating-stars">
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                        </div>
+                                        <div class="rating-progress">
+                                            <div style="width: 80%;"></div>
+                                        </div>
+                              
+                                    </li>
+                                    <li>
+                                        <div class="rating-stars">
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star-o"></i>
+                                        </div>
+                                        <div class="rating-progress">
+                                            <div style="width: 60%;"></div>
+                                        </div>
+                                
+                                    </li>
+                                    <li>
+                                        <div class="rating-stars">
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star-o"></i>
+                                            <i class="fa fa-star-o"></i>
+                                        </div>
+                                        <div class="rating-progress">
+                                            <div></div>
+                                        </div>
+                              
+                                    </li>
+                                    <li>
+                                        <div class="rating-stars">
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star-o"></i>
+                                            <i class="fa fa-star-o"></i>
+                                            <i class="fa fa-star-o"></i>
+                                        </div>
+                                        <div class="rating-progress">
+                                            <div></div>
+                                        </div>
+                             
+                                    </li>
+                                    <li>
+                                        <div class="rating-stars">
+                                            <i class="fa fa-star"></i>
+                                            <i class="fa fa-star-o"></i>
+                                            <i class="fa fa-star-o"></i>
+                                            <i class="fa fa-star-o"></i>
+                                            <i class="fa fa-star-o"></i>
+                                        </div>
+                                        <div class="rating-progress">
+                                            <div></div>
+                                        </div>
+                               
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- /Rating -->
+                        <div class="col-md-6 comments-container" id="all-comments" style="display: flex;flex-direction: column;align-items: center;gap: 20px;">
+                            @Html.Partial("_AllCommentsPartial", Model)
+                        </div>
+                        <!-- Review Form -->
+                        <div class="col-md-3">
+                            <div id="review-form">
+                                <form class="review-form" id="commentForm">
+                                    <textarea class="input" id="commentBody" placeholder="Your Review"></textarea>
+                                    <div class="input-rating">
+                                        <span>Your Rating: </span>
+                                        <div class="stars">
+                                            <input id="star5" name="rating" value="5" type="radio"><label for="star5"></label>
+                                            <input id="star4" name="rating" value="4" type="radio"><label for="star4"></label>
+                                            <input id="star3" name="rating" value="3" type="radio"><label for="star3"></label>
+                                            <input id="star2" name="rating" value="2" type="radio"><label for="star2"></label>
+                                            <input id="star1" name="rating" value="1" type="radio"><label for="star1"></label>
+                                        </div>
+                                    </div>
+                                    @if (didHebuyIt)
+                                    {
+                                        <button class="primary-btn" type="submit">Submit</button>
+                                    }
+                                    else
+                                    {
+                                        <p style="color:white;padding:5px;background-color:red; border-radius:5px;font-weight:bold">you should buy this product First</p>
+                                    }
+                                </form>
+                            </div>
+                        </div>
+                        <!-- /Review Form -->
+
+          </div>
+        </div>
+    </div>
+</div>
+
+<!-- /Product details -->
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#commentForm').submit(function (e) {
+            e.preventDefault();
+            // Get the value of the textarea
+            var commentBody = $('#commentBody').val().trim();
+
+            // Check if the textarea is empty
+            if (commentBody === '') {
+                Swal.fire(
+                    'Error!',
+                    'Please write a review before submitting.',
+                    'error'
+                );
+                return;
+            }
+
+            // Assuming @data.Id is a server-side variable, you should output it properly
+            var productId = @data.Id;
+            console.log(commentBody, productId);
+
+            var formData = {
+                Body: commentBody,
+                ProductID: productId
+            }; 
+
+            $.ajax({
+                type: "POST",
+                url: "/Product/AddComment",
+                data: formData,
+                success: function (response) {
+                    console.log(response);
+                    $('#all-comments').html(response);
+                    $('#commentBody').val('');
+                    Swal.fire(
+                        'Success',
+                        'Comment has been added successfully',
+                        'success'
+                    );
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    console.error("Error adding comment: " + errorThrown);
+                }
+            });
+        });
+    });
+
+    function CommentsPagination(page) {
+        event.preventDefault();
+        var productId = $('#productId').val(); // Get the product ID
+
+        $.ajax({
+            url: `/Product/CommentsPagination?page=${page}&productId=${productId}`,
+            success: function (result) {
+                $("#all-comments").html(result);
+            }
+        });
+    }
+    function addToCart(id) {
+        $.ajax({
+            url: '/Cart/AddToCart/' + id,
+            success: function (result) {
+                $("#head").html("");
+                $("#head").html(result);
+                Swal.fire(
+                    'Success!',
+                    'Product Added Successfully!',
+                    'success'
+                );
+            },
+            error: function (xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+        });
+    }
+    
+
+</script>
+

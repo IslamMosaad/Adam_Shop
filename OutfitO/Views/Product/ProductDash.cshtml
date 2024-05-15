@@ -1,0 +1,69 @@
+﻿@model List<Product>
+@{
+    ViewData["Title"] = "Products";
+    Layout = "_AdminLayout";
+}
+<div id="modal-placeholder"></div>
+<div class="Section p-20 bg-white rad-10 m-20">
+    <h2 class="mt-0 mb-20">Products</h2>
+    <div class="responsive-table">
+        <p>
+            <a asp-action="New" asp-controller="Product">Create New</a>
+        </p><br />
+        <table>
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Title</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Category</th>
+                    <th>Publish By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @{
+                                string ProductImg = $"~/Images/{item.Img}";
+                            }
+                            <img src="@Url.Content(ProductImg)" alt=""/>
+                        </td>
+                        <td>
+                            @item.Title
+                        </td>
+                        <td>
+                            @item.Price
+                        </td>
+                        <td>
+                            @item.Stock
+                        </td>
+                        <td>
+                            @item.Category.Title
+                        </td>
+                        <td>
+                            @item.User.FirstName @item.User.Lastname
+                        </td>
+                        <td>
+							<a asp-controller="Product" asp-action="Edit" asp-route-id="@item.Id"><i class="fa fa-edit"></i></a> |
+                            <a asp-controller="Product" asp-action="deleteProduct" asp-route-id="@item.Id"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <nav aria-label="Page navigation" class="my-5">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= Math.Ceiling((double)(int)ViewData["TotalItems"] / (int)ViewData["content"]); i++)
+                {
+                    <li class="page-item @(i == (int)ViewData["Page"] ? "active" : "")  ">
+                        <a class="page-link btn btn-secondary mx-1" asp-action="ProductDash" asp-controller="Product" asp-route-page="@i">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    </div>
+</div>
